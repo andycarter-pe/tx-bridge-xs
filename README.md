@@ -25,8 +25,7 @@ Sample URL
 ```
 http://127.0.0.1:5000/xs/?uuid=526fdf7e-d1e6-4e21-ba1c-2b43825a0deb&list_flows=0,0,0,0,0,0,0,100,1000,5000,28000,42000,50000,45000,42000,35000,30000,25000&first_utc_time=2023-10-26T02:00:00
 ```
-
-
+<br><br>
 Another server, separate from this repository, is designed to perform two tasks: 1) retrieve forecasted short-range flows for the specified National Water Model reach per bridge, and 2) generate continuously updated URLs for the bridge cross-sections.
 
 ## Dockerfile
@@ -38,7 +37,7 @@ docker build -t tx-bridge-xs .
 ## Docker Container
 For convience, a container has been pre-built and pushed to DockerHub.  To pull this container to your machine...
 ```
-docker build -t civileng127/tx-bridge-xs:20240216 .
+docker pull civileng127/tx-bridge-xs:20240216
 ```
 To run this container, use the following command
 ```
