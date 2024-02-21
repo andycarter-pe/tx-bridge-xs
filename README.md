@@ -15,10 +15,16 @@ Each cross section is cross-referenced with both the National Bridge Inventory d
   - **Related Projects**: Bridge database was created using the TX-Bridge repository.  https://github.com/andycarter-pe/tx-bridge<br>
 
 ## Flask Server
-This is a Flask server that serves interactive plotly graphics of a 'bridge envelope'.  Each bridge has a syntheic rating curve (depth vs flow rate) and knows what National Water Model stream reach that is crosses.
+This Flask server hosts interactive Plotly graphics displaying a 'bridge envelope'. Each bridge features a synthetic rating curve, depicting depth versus flow rate, 
+and is associated with a specific National Water Model stream reach that it crosses.
 
 <img src="/doc/Flask_server_diagram.png" align="center"
      alt="flask server diagram" width="100%">
+<br><br>
+Sample URL 
+```
+http://127.0.0.1:5000/xs/?uuid=526fdf7e-d1e6-4e21-ba1c-2b43825a0deb&list_flows=0,0,0,0,0,0,0,100,1000,5000,28000,42000,50000,45000,42000,35000,30000,25000&first_utc_time=2023-10-26T02:00:00
+```
 
 ## Dockerfile
 To build a container from this repository, clone to your local drive and build with the following command
