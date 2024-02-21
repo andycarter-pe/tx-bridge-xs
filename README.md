@@ -11,6 +11,12 @@ Each cross section is cross-referenced with both the National Bridge Inventory d
   - **Status**:  Version 0.1- Preliminary release. <br><br>
   - **Related Projects**: Bridge database was created using the TX-Bridge repository.  https://github.com/andycarter-pe/tx-bridge<br>
 
+<img src="/doc/Flask_server_diagram.png" align="center"
+     alt="tx-bridge logo" width="100%" height="160">
+
+## Flask Server
+This is a Flask server that serves interactive plotly graphics of a 'bridge envelope'.  Each bridge has a syntheic rating curve (depth vs flow rate) and knows what National Water Model stream reach that is crosses.
+
 <iframe src="/doc/sample_bridge_xs_plot.html" width="100%" height="300px"></iframe>
 
 ## Dockerfile
@@ -29,10 +35,5 @@ To run this container, use the following command
 docker run -p 5000:5000 civileng127/tx-bridge-xs:20240216
 ```
 
-
-
 ## Misc
-To build a container from this repository, clone to your local drive and build with the following command
-```
-docker build -t tx-bridge-xs .
-```
+For this server, a JSON for each bridge is created and staged on an S3 bucket prior to spinning up the web server.  This utilizes a script named 'create_bridge_json_files.py' in the misc folder.  This converts the bridge database sqlite created with 'TX-Bridge' for the State of Texas to individual JSON per uuid.  This database currently resides on S3 at s3://txbridge-data/test-upload/tx-bridge-geom.sqlite
