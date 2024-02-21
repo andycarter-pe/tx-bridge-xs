@@ -26,6 +26,9 @@ Sample URL
 http://127.0.0.1:5000/xs/?uuid=526fdf7e-d1e6-4e21-ba1c-2b43825a0deb&list_flows=0,0,0,0,0,0,0,100,1000,5000,28000,42000,50000,45000,42000,35000,30000,25000&first_utc_time=2023-10-26T02:00:00
 ```
 
+
+Another server, separate from this repository, is designed to perform two tasks: 1) retrieve forecasted short-range flows for the specified National Water Model reach per bridge, and 2) generate continuously updated URLs for the bridge cross-sections.
+
 ## Dockerfile
 To build a container from this repository, clone to your local drive and build with the following command
 ```
