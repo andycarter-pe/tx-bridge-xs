@@ -7,6 +7,9 @@
 **Description**:  A database of simplified bridge geometry was extracted from statewide LiDAR and DEMs for the State of Texas.  From the bridge database, it was necessary to produce interactive graphics estimating water depths for more than 19,000 bridges across Texas on an hourly basis, providing an eighteen-hour advance prediction.  These graphics are used to indicate instances when a bridge's superstructure, including beams and deck, may be at risk of flooding. <br><br>
 Each cross section is cross-referenced with both the National Bridge Inventory database and the National Weather Service’s National Water Model (NWM) stream reach. Anticipated stream flows from the National Water Model are then converted into predictions of flood depths.
 
+<img src="/doc/sample_xs.png" align="center"
+     alt="sample cross section" width="100%">
+
   - **Technology stack**: Scripts were all developed in Python 3.8.<br><br>
   - **Status**:  Version 0.1- Preliminary release. <br><br>
   - **Related Projects**: Bridge database was created using the TX-Bridge repository.  https://github.com/andycarter-pe/tx-bridge<br>
@@ -15,7 +18,7 @@ Each cross section is cross-referenced with both the National Bridge Inventory d
 This is a Flask server that serves interactive plotly graphics of a 'bridge envelope'.  Each bridge has a syntheic rating curve (depth vs flow rate) and knows what National Water Model stream reach that is crosses.
 
 <img src="/doc/Flask_server_diagram.png" align="center"
-     alt="tx-bridge logo" width="100%">
+     alt="flask server diagram" width="100%">
 
 ## Dockerfile
 To build a container from this repository, clone to your local drive and build with the following command
@@ -34,4 +37,7 @@ docker run -p 5000:5000 civileng127/tx-bridge-xs:20240216
 ```
 
 ## Misc
-For this server, a JSON for each bridge is created and staged on an S3 bucket prior to spinning up the web server.  This utilizes a script named 'create_bridge_json_files.py' in the misc folder.  This converts the bridge database sqlite created with 'TX-Bridge' for the State of Texas to individual JSON per uuid.  This database currently resides on S3 at s3://txbridge-data/test-upload/tx-bridge-geom.sqlite
+Before initializing the web server, a JSON file is generated for each bridge and stored in an S3 bucket. 
+This process is facilitated by a script called 'create_bridge_json_files.py', located in the misc folder. 
+The script converts the bridge SQLite database, generated using 'TX-Bridge' for the State of Texas, into separate JSON files for each UUID.
+Currently, the database is hosted on S3 at the location s3://txbridge-data/test-upload/tx-bridge-geom.sqlite.
