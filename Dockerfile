@@ -7,6 +7,9 @@ WORKDIR /app
 # Install pandas using pip
 RUN pip install flask plotly pytz numpy scipy pandas boto3
 
+# Set environment variable
+ENV PATH_TO_BRIDGE_JSONS="s3://tx-bridge-xs-json/"
+
 # Copy the rest of your application code into the Docker image
 COPY . /app
 

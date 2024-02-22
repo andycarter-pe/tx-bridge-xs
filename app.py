@@ -18,10 +18,10 @@
 
 # uses a plot.html in a "templates" folder to render the cross section
 
-
 # Import necessary modules
 from flask import Flask, render_template, send_from_directory, request
 import plotly.io as pio
+import os
 
 # import custom script and function for this Flask application
 from generate_plotly_cross_section_json import fn_generate_xs_from_json
@@ -35,10 +35,12 @@ def get_cross_section_plot():
     try:
         # Get the URL from the request
         url = request.url
+        
+        str_path_to_bridge_jsons = os.environ.get('PATH_TO_BRIDGE_JSONS')
 
         # Path to the JSON files containing bridge data (hardcoded)
         # *********** HARD CODED *******************
-        str_path_to_bridge_jsons = 's3://txbridge-data/bridge_json/'
+        #str_path_to_bridge_jsons = 's3://txbridge-data/bridge_json/'
         # ******************************************
 
         # Call a function to generate the Plotly figure from JSON data

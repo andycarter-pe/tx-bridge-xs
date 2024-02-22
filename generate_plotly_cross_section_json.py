@@ -32,6 +32,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 import boto3
+from botocore.config import Config
 from urllib.parse import urlparse, parse_qs
 
 
@@ -537,7 +538,16 @@ def fn_is_valid_s3_uri(s3_uri):
 
     # Create an S3 client
     s3 = boto3.client('s3')
-
+    # Configure the Boto3 client with anonymous credentials for us-east-1 region
+    
+    '''
+    s3 = boto3.client('s3', 
+                      config=Config(signature_version='s3v4', 
+                                    region_name='us-east-1'), 
+                      aws_access_key_id='', 
+                      aws_secret_access_key='')
+    '''
+    
     # Check if the file exists in the bucket
     try:
         s3.head_object(Bucket=bucket_name, Key=file_name)
@@ -647,9 +657,9 @@ if __name__ == '__main__':
     
     parser.add_argument('-i',
                         dest = "str_path_to_bridge_json_files",
-                        help=r'REQUIRED: path to folder containing prepared bridge cross section JSON Example: s3://txbridge-data/bridge_json/',
+                        help=r'REQUIRED: path to folder containing prepared bridge cross section JSON Example: s3://tx-bridge-xs-json/',
                         required=False,
-                        default='s3://txbridge-data/bridge_json/',
+                        default='s3://tx-bridge-xs-json/',
                         metavar='FILEPATH',
                         type=str)
     
@@ -657,7 +667,7 @@ if __name__ == '__main__':
                         dest = "str_url",
                         help=r'REQUIRED: URL for the requested bridge Example: http://127.0.0.1/xs/?uuid=30677002-85e1-4f9d-8fbb-cdc910fd490b&list_flows=[100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800&first_utc_time=2024-02-04T19:00:00',
                         required=False,
-                        default=r'http://127.0.0.1/xs/?uuid=2e8cd88c-7949-4f17-a159-83b3670f7cc0&list_flows=100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800]&first_utc_time=2024-02-04T19:00:00',
+                        default=r'http://127.0.0.1/xs/?uuid=2e8cd88c-7949-4f17-a159-83b3670f7cc0&list_flows=100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800&first_utc_time=2024-02-04T19:00:00',
                         metavar='STR',
                         type=str)
     

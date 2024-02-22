@@ -2,7 +2,7 @@
 #
 # This Python script connects to a SQLite database containing bridge data, 
 # retrieves records and column names, then processes each record to create
-#  JSON files for each bridge, incorporating specific annotations and 
+# JSON files for each bridge, incorporating specific annotations and 
 # pre-computed warning zone limits, utilizing multiprocessing for 
 # parallel processing.
 
@@ -97,8 +97,10 @@ def fn_process_record(args):
         # Unpack arguments
         record, columns = args
         
+        # ***** Hard coded output directory *****
         # Output directory for JSON files (Hard coded)
         str_json_out_header = r"E:\working\bridge_json_20240215"
+        # *****  *****
         
         # Fields to keep in the output JSON
         list_fields_to_keep = ['uuid', 'sta', 'ground_elv', 'deck_elev', 'low_ch_elv',

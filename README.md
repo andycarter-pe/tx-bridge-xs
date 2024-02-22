@@ -37,12 +37,14 @@ docker build -t tx-bridge-xs .
 ## Docker Container
 For convience, a container has been pre-built and pushed to DockerHub.  To pull this container to your machine...
 ```
-docker pull civileng127/tx-bridge-xs:20240216
+docker pull civileng127/tx-bridge-xs:20240223
 ```
 To run this container, use the following command
 ```
-docker run -p 5000:5000 civileng127/tx-bridge-xs:20240216
+docker run -e AWS_ACCESS_KEY_ID=<your_access_key> -e AWS_SECRET_ACCESS_KEY=<your_secret_access-key> -p 5000:5000 civileng127/tx-bridge-xs:20240223
 ```
+Note that this container will need to have your AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY as command line environment inputs.  Additionally, the Dockerfile/Docker Container
+has an environmental for the bucket containing the bridge jsons ... ENV PATH_TO_BRIDGE_JSONS="s3://tx-bridge-xs-json/"
 
 ## Misc
 Before initializing the web server, a JSON file is generated for each bridge and stored in an S3 bucket. 
