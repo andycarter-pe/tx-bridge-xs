@@ -434,7 +434,7 @@ def fn_create_bridge_xs(str_static_xs_filepath, dict_url_parameters):
     fig4.data[int_dynamic_line_head + int_forecast_hour].visible = True
     fig4.data[int_start_dots + int_forecast_hour].visible = True
 
-    str_forecast_time = forecast_time_cdt.strftime('%a ,%b %d %Y %I%p %Z')
+    str_forecast_time = forecast_time_cdt.strftime('%a, %b %d %Y %I%p %Z')
 
     fig4.add_annotation(text='<b>Forecast Issued: </b>' +  str_forecast_time,
                         showarrow=False,
