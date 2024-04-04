@@ -557,9 +557,10 @@ def fn_is_valid_s3_uri(s3_uri):
 # -----------------------------
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-def fn_generate_xs_from_json(url, str_path_to_bridge_json_files):
+
+def validate_inputs(url, str_path_to_bridge_json_files):
     """
-    Generates a cross-section plot based on JSON data retrieved from a URL.
+    Validates a cross-section plot based on JSON data retrieved from a URL.
 
     Parameters:
     url (str): The URL containing the JSON data.
@@ -573,19 +574,21 @@ def fn_generate_xs_from_json(url, str_path_to_bridge_json_files):
       - uuid: Unique identifier for the JSON file.
       - list_flows: A list of flow values.
       - first_utc_time: The timestamp of the first data point.
-    - The JSON file is expected to be located in the directory specified by str_path_to_bridge_json_files.
-
-    Errors:
-    - Error 001: KeyError raised during URL parsing.
-    - Error 002: Required parameters are missing in the URL.
-    - Error 003a: Non-numeric values found in the 'list_flows' parameter.
-    - Error 003b: Negative values found in the 'list_flows' parameter.
-    - Error 003c: 'list_flows' parameter does not contain exactly 18 values.
-    - Error 004: KeyError or ValueError raised during parameter processing.
+    - Th
 
     """
+    ERROR = {
+    "005": "File not found with the given uuid.",
+    "001": "KeyError raised during URL parsing.",
+    "002": "Required parameters are missing in the URL.",
+    "003a": "Non-numeric values found in the 'list_flows' parameter.",
+    "003b": "Negative values found in the 'list_flows' parameter.",
+    "003c": "'list_flows' parameter does not contain exactly 18 values.",
+    "004": "KeyError or ValueError raised during parameter processing.",
+    }
     b_valid_input = True  # Flag to track input validity
     str_static_xs_filepath = ""  # Path to the static XS file
+    error_code = "000"
 
     try:
         parsed_url = urlparse(url)
@@ -600,16 +603,20 @@ def fn_generate_xs_from_json(url, str_path_to_bridge_json_files):
         if not fn_is_valid_s3_uri(str_static_xs_filepath):
             print(f'File not found at {str_static_xs_filepath}')
             b_valid_input = False
+            error_code = "005"
+
 
     except KeyError:
         b_valid_input = False
         print('Error 001')
+        error_code = "001"
 
     # Check if the required parameters are present in the URL
     list_required_params = ['uuid', 'list_flows', 'first_utc_time']
     if not all(param in dict_url_parameters for param in list_required_params):
         print('Error 002')
         b_valid_input = False
+        error_code = "002"
 
     # Check if URL parameters contain compliant data
     try:
@@ -621,15 +628,18 @@ def fn_generate_xs_from_json(url, str_path_to_bridge_json_files):
             if not isinstance(item, (float, int)):
                 b_valid_input = False
                 print('Error 003a')
+                error_code = "003a"
             # Check if each item is non-negative
             elif item < 0:
                 b_valid_input = False
                 print('Error 003b')
+                error_code = "003b"
         
         # Check if 'list_flows' contains exactly 18 values
         if len(list_flows) != 18:
             b_valid_input = False
             print('Error 003c')
+            error_code = "003c"
 
         # Parse 'first_utc_time' parameter as a datetime object
         first_utc_time = dict_url_parameters['first_utc_time'][0]
@@ -638,15 +648,22 @@ def fn_generate_xs_from_json(url, str_path_to_bridge_json_files):
     except (KeyError, ValueError):
         b_valid_input = False
         print('Error 004')
+        error_code = "004"
         
     # Create the cross-section plot if input is valid, else create an error plot
     if b_valid_input:
-        figure_plot = fn_create_bridge_xs(str_static_xs_filepath, dict_url_parameters)
+        return {
+            "STATUS": "OK",
+            "xs_file_path": str_static_xs_filepath,
+            "url_params": dict_url_parameters
+        }
     else:
-        figure_plot = fn_make_error_plot()
-    
-    return figure_plot
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        return {
+            "STATUS": "Failed",
+            "ERROR_CODE": error_code,
+            "ERROR_TEXT": ERROR[error_code]
+        }
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 if __name__ == '__main__':
