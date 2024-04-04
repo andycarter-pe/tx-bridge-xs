@@ -5,7 +5,7 @@ FROM python:3.8-slim
 WORKDIR /app
 
 # Install dependencies using pip
-RUN pip install flask plotly pytz numpy scipy pandas boto3
+RUN pip install flask plotly pytz numpy scipy pandas boto3 gunicorn
 
 # Set environment variable
 ENV PATH_TO_BRIDGE_JSONS="s3://tx-bridge-xs-json/"
@@ -25,5 +25,5 @@ USER kisters
 # Expose port 5000 if needed
 EXPOSE 5000
 
-# Specify the command to run your application
-CMD ["python", "app.py"]
+# Specify the command to run your application using Gunicorn
+CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app"]
