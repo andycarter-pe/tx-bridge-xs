@@ -1,0 +1,16 @@
+services:
+  tx-bridges-xs:
+    image: tx-brideges-xs:latest
+    build:
+      dockerfile: Dockerfile
+    environment:
+    # this is not the safest way, secrets should be used, but it's ok for now internally
+      AWS_ACCESS_KEY_ID: <yourkeyid>
+      AWS_SECRET_ACCESS_KEY: <yourkeysecret>
+      PATH_TO_BRIDGE_JSONS: s3://knatempstorage/tx-bridge-xs-json/
+    ports:
+      - "5000:5000"
+    expose:
+      - "5000"
+    volumes:
+      - ./:/data/

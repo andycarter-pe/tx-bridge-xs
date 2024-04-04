@@ -35,6 +35,9 @@ import boto3
 from botocore.config import Config
 from urllib.parse import urlparse, parse_qs
 
+import logging
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # ======================================
 def fn_interpolate_depth_from_flow(arr_flows, str_list_tup_rating):
@@ -49,6 +52,7 @@ def fn_interpolate_depth_from_flow(arr_flows, str_list_tup_rating):
     Returns:
     Array of interpolated depth values corresponding to the input flow rates.
     """
+    logging.info(f'Interpolating depth from flow.')
     
     # Convert the string to a list
     list_of_tup_rating = ast.literal_eval(str_list_tup_rating)
@@ -110,6 +114,7 @@ def fn_create_bridge_xs(str_static_xs_filepath, dict_url_parameters):
     list_flows = ast.literal_eval(dict_url_parameters.get('list_flows', [''])[0])
     first_utc_time = dict_url_parameters.get('first_utc_time', [''])[0]
     
+    logging.info(f'Loading bridge definition')
     # Extract S3 bucket name and file key from the static cross-section filepath
     s3_url = str_static_xs_filepath.replace("s3://", "")
     
@@ -126,8 +131,10 @@ def fn_create_bridge_xs(str_static_xs_filepath, dict_url_parameters):
     json_data = json.loads(response['Body'].read().decode('utf-8'))
     # ....  ....
 
+    logging.info(f'Bridge definition loaded from S3 {file_key}')
     oldest_time = datetime.fromisoformat(first_utc_time)
 
+    logging.info(f'Processing timeseries data')
     # Subtract one hour
     oldest_time_minus_hour = oldest_time - timedelta(hours=1)
 
@@ -197,6 +204,7 @@ def fn_create_bridge_xs(str_static_xs_filepath, dict_url_parameters):
         list_of_list_max_wsel_ground.append(list_max_wsel_ground)
 
     # ----- Generate a cross section plot -----
+    logging.info(f'Generating bridge plot')
     fig4 = go.Figure()
 
     fig4 = make_subplots(rows=1, cols=2, subplot_titles=('Bridge Cross Section', 'Forecast of Depth' ), column_widths=[0.55, 0.35])
@@ -557,9 +565,10 @@ def fn_is_valid_s3_uri(s3_uri):
 # -----------------------------
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-def fn_generate_xs_from_json(url, str_path_to_bridge_json_files):
+
+def validate_inputs(url, str_path_to_bridge_json_files):
     """
-    Generates a cross-section plot based on JSON data retrieved from a URL.
+    Validates a cross-section plot based on JSON data retrieved from a URL.
 
     Parameters:
     url (str): The URL containing the JSON data.
@@ -573,19 +582,21 @@ def fn_generate_xs_from_json(url, str_path_to_bridge_json_files):
       - uuid: Unique identifier for the JSON file.
       - list_flows: A list of flow values.
       - first_utc_time: The timestamp of the first data point.
-    - The JSON file is expected to be located in the directory specified by str_path_to_bridge_json_files.
-
-    Errors:
-    - Error 001: KeyError raised during URL parsing.
-    - Error 002: Required parameters are missing in the URL.
-    - Error 003a: Non-numeric values found in the 'list_flows' parameter.
-    - Error 003b: Negative values found in the 'list_flows' parameter.
-    - Error 003c: 'list_flows' parameter does not contain exactly 18 values.
-    - Error 004: KeyError or ValueError raised during parameter processing.
+    - Th
 
     """
+    ERROR = {
+    "005": "File not found with the given uuid.",
+    "001": "KeyError raised during URL parsing.",
+    "002": "Required parameters are missing in the URL.",
+    "003a": "Non-numeric values found in the 'list_flows' parameter.",
+    "003b": "Negative values found in the 'list_flows' parameter.",
+    "003c": "'list_flows' parameter does not contain exactly 18 values.",
+    "004": "KeyError or ValueError raised during parameter processing.",
+    }
     b_valid_input = True  # Flag to track input validity
     str_static_xs_filepath = ""  # Path to the static XS file
+    error_code = "000"
 
     try:
         parsed_url = urlparse(url)
@@ -598,17 +609,18 @@ def fn_generate_xs_from_json(url, str_path_to_bridge_json_files):
         
         # Check if str_static_xs_filepath exists
         if not fn_is_valid_s3_uri(str_static_xs_filepath):
-            print(f'File not found at {str_static_xs_filepath}')
+            error_code = "005"
+            logging.error(f'Error {error_code}: {ERROR[error_code]} || {str_static_xs_filepath}')
             b_valid_input = False
-
-    except KeyError:
+    except KeyError as e:
         b_valid_input = False
-        print('Error 001')
-
+        error_code = "001"
+        logging.error(f'Error {error_code}: {e} || {ERROR[error_code]}')
     # Check if the required parameters are present in the URL
     list_required_params = ['uuid', 'list_flows', 'first_utc_time']
     if not all(param in dict_url_parameters for param in list_required_params):
-        print('Error 002')
+        error_code = "002"
+        logging.error(f'Error {error_code}: {ERROR[error_code]}')
         b_valid_input = False
 
     # Check if URL parameters contain compliant data
@@ -619,35 +631,45 @@ def fn_generate_xs_from_json(url, str_path_to_bridge_json_files):
         for i, item in enumerate(list_flows):
             # Check if each item is a float or an integer
             if not isinstance(item, (float, int)):
+                error_code = "003a"
                 b_valid_input = False
-                print('Error 003a')
+                logging.error(f'Error {error_code}: {ERROR[error_code]}')
             # Check if each item is non-negative
             elif item < 0:
                 b_valid_input = False
-                print('Error 003b')
+                error_code = "003b"
+                logging.error(f'Error {error_code}: {ERROR[error_code]}')
         
         # Check if 'list_flows' contains exactly 18 values
         if len(list_flows) != 18:
             b_valid_input = False
-            print('Error 003c')
-
+            error_code = "003c"
+            logging.error(f'Error 003c: {ERROR[error_code]} -- {len(list_flows)}')
+        
         # Parse 'first_utc_time' parameter as a datetime object
         first_utc_time = dict_url_parameters['first_utc_time'][0]
         datetime.fromisoformat(first_utc_time)
         
-    except (KeyError, ValueError):
+    except (KeyError, ValueError) as e:
+        error_code = "004"
         b_valid_input = False
-        print('Error 004')
+        logging.error(f'Error 004: {e} || {ERROR[error_code]}')
         
     # Create the cross-section plot if input is valid, else create an error plot
     if b_valid_input:
-        figure_plot = fn_create_bridge_xs(str_static_xs_filepath, dict_url_parameters)
+        return {
+            "STATUS": "OK",
+            "xs_file_path": str_static_xs_filepath,
+            "url_params": dict_url_parameters
+        }
     else:
-        figure_plot = fn_make_error_plot()
-    
-    return figure_plot
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        return {
+            "STATUS": "Failed",
+            "ERROR_CODE": error_code,
+            "ERROR_TEXT": ERROR[error_code]
+        }
 
+# runs only if file is executed directly
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 if __name__ == '__main__':
 

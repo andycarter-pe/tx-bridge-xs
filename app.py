@@ -19,12 +19,12 @@
 # uses a plot.html in a "templates" folder to render the cross section
 
 # Import necessary modules
-from flask import Flask, render_template, send_from_directory, request
+from flask import Flask, render_template, send_from_directory, request, jsonify
 import plotly.io as pio
 import os
 
 # import custom script and function for this Flask application
-from generate_plotly_cross_section_json import fn_generate_xs_from_json
+from generate_plotly_cross_section_json import fn_create_bridge_xs, validate_inputs
 
 # Create a Flask application instance
 app = Flask(__name__, static_url_path='/static', static_folder='static')
@@ -42,20 +42,24 @@ def get_cross_section_plot():
         # *********** HARD CODED *******************
         #str_path_to_bridge_jsons = 's3://txbridge-data/bridge_json/'
         # ******************************************
+        validation = validate_inputs(url, str_path_to_bridge_jsons)
 
-        # Call a function to generate the Plotly figure from JSON data
-        fig = fn_generate_xs_from_json(url, str_path_to_bridge_jsons)
-
-        # Serialize the Plotly figure to HTML
-        fig_html = pio.to_html(fig, full_html=True)
-
-        # Create an HTML template and inject the Plotly figure into it
-        return render_template('plot.html', figure=fig_html)
-
+        if validation["STATUS"] == "OK":
+            fig = fn_create_bridge_xs(validation["xs_file_path"], validation["url_params"])
+            fig_html = pio.to_html(fig, full_html=True)
+            return render_template('plot.html', figure=fig_html)
+        else:
+            return validation
     # Handle exceptions
     except Exception as e:
         # Return an error message if an exception occurs
         return f'Error: {str(e)}'
+    
+@app.route('/health', methods=['GET'])
+def health():
+    # This is where you could add checks to your service's health.
+    # For a simple health check, we'll just return "up".
+    return jsonify({'status': 'up'}), 200
 
 # Run the Flask application if this script is executed directly
 if __name__ == '__main__':
